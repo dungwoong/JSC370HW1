@@ -1,25 +1,95 @@
 ---
-title: "HW1"
+title: 'HW1'
 output: 
   html_document:
     theme: flatly
 link-citations: yes
 ---
 
-# Loading and reading in data
+# Step 1: Loading and preliminary checks
+
+
+## Loading the data
 
 Installing the necessary packages
 
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
-#install.packages(c("data.table","leaflet"))
+#install.packages(c('data.table','leaflet'))
 library(data.table)
 library(leaflet)
 library(tidyverse)
 ```
 
-```{r checking-file, include=FALSE}
-fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
-if (!file.exists("met_all.gz"))
-  download.file(fn, destfile = "met_all.gz")
-met <- data.table::fread("met_all.gz")
+```{r check-file, include=T}
+fn <- 'https://raw.githubusercontent.com/dungwoong/JSC370HW1/master/Bicycle_Thefts.csv'
+if (!file.exists('Bicycle_Thefts.csv'))
+  download.file(fn, destfile = 'Bicycle_Thefts.csv')
+df <- data.table::fread('Bicycle_Thefts.csv')
 ```
+
+## Preliminary checks
+The dataset description can be found [here](https://ago-item-storage.s3.us-east-1.amazonaws.com/c0b17f1888544078bf650f3b8b04d35d/PSDP_Open_Data_Documentation.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEKn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQDj5ufbbDJ%2Bn3Lbrsac6%2FJSfYwygHN6QJgRbz5R31R%2BJgIhAIaxKulHgpveGrvOg1U1uOyuUweOhsVDN%2BYVMNq1VgJaKswECCIQABoMNjA0NzU4MTAyNjY1IgxH%2BxY4ffK1IOFrQfgqqQSUq8iEVvqvHK327wJ6J6AFQiWPDzWBKx%2FbkDpZcu8Zkh5nOsBraV7DHrW2He3JDPrq%2Fop3vAlyDkCKNjqFAx05IRXE6YpXCrylH2yoNfWBw2PJ2O0k5NAcaLN66a31f2Qc6obOy%2FQdRzU0n4KbAPYZH7GEuwlsKUNtYMQdoBlnbUcxRkIMRbF%2BUiu5Z5Jn%2B6Ym5d9DMG%2FGM1P13zA%2BsdJJsurPGz%2BjgnwAovoygfj9nUcWzLnjpAEnrf0rMaHxg04D%2B0U%2FkRS9soRZHqYyG3wAHd9M7kAJIehYHvntX9ihwdOgu6MYorKznUdX4rUgzHmY9ujaiFP9HEhHLAxcy7ZDMdAEFxgidFFnobo5thV%2BSCPmhV9hEJ2xdRFIosCI8Qh%2B1iA8M5bkOc8z2OTIFButSQgA4rjwtsB5TGKboxKZz5aiIo0EWdUCkBuYBy0nB8qBmkaKKwOuIelrAI4%2BoMpYWh5cR5YohNcPVLq3yV4ORDowHSuo96e33vUdrQIGl6pkyQpedUp6s%2BpJ0UA2evMxuGPXcZTZPh2IhpxyQ6nPECFIRbT5lgRl37vpGKCi7hdhXlwG6%2FDz7q8bPHJWWjZyXgkxF%2FUwFpgUIwX6oXIpezKm0auoqdsgmv0ie0bg9TbZU4TuzUY0bn1J6uuKhAhlqt58i3Nprpf85zrY%2BcQCWzwEm7Hs%2FbDBygfKPeyU4Tbc8ro8W1AXCWjcJDndY%2BXrPUtYu4BWJ4tWML6ax54GOqgBtKNVCJ6W33wc7Fn9mcmTWw7Y6sfIOZPAkKMC%2FC0J1L2HXzr4ww%2B%2FRU3g7mNB%2B37Sb9llvl9hbefcKvnhHHmvN7AdakxDRPBG7C8nP%2B2u%2FHJc52gX%2FIVgbxMS%2Bim4Iq6DBEm9zpm2gtHRmHEM2H%2FFuqcLh9PeGbE6Mg28O64yjDkIy6%2Bfv7GwAGay%2F312gT%2BjFRkcLfkggzCLPnlXmQDFtU3DiZojLFrE&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230126T020707Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAYZTTEKKE6QZBTDYN%2F20230126%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=8da3bd61eca98818b1d57f7dc9a2249abdf01dc883471fb1be2d5a2012a1b370)
+
+The dataset should have 30154 records. The table should have 32 attributes, although the CSV downloads with 35 columns.
+```{r}
+dim(df)
+```
+
+We're only interested in a few variables for this investigation. Specifically, all time variables concerning the reporting time and location of the theft. 
+
+These variables are listed under different names than that specified in the data description document, but we can infer their meanings. I will decide on variables to investigate, then check for missing or nonsensical values in the variables I want to investigate.
+
+## Variables to investigate
+
+The Primary_Offence column lists many crimes, but the data portal states that "(all) occurrences are related to...offences where the theft of a bicycle was included," so I will assume it's not necessary and I can assume each row is related to a bicycle theft.
+
+Since we are investigating the location and time of reports, I will discard variables regarding the time/location of the occurrence of each incident.
+
+I will also discard other bike metadata and statistics relating to the crime, such as bike cost, status of bike(stolen/recovered/unknown), etc.
+
+I will also discard the 'X' and 'Y' variables in the CSV, as they are not explained in the data description and do not make sense to me. I will also discard any id variables.
+```{r, result='hide', fig.show='hide', message=F}
+# this code was used to check the other variables
+# str(df)
+# summary(df)
+
+# table(df$Primary_Offence)
+
+# table(df$Status)
+```
+
+Overall, there are a few variables I'm interested in.
+These are listed below:
+
+Name in Dataset | Description
+-----|------------
+Report_* (multiple variables) | Time variables regarding reporting
+Hood_ID | Identifier of each neighborhood
+NeighbourhoodName | Name of neighborhood
+City | Name of City
+Longitude | Longitude coordinates(offset to nearest intersection)
+Latitude | Latitude coordinates(offset to nearest intersection)
+
+I checked each of these variables and verified that no loading errors occurred. In the next section, I will remove the other variables and perform further checks
+
+# Step 2: Clean the data
+
+Report_Date is reflected in the other report variables, and the time of the report dates are all 4:00:00, suggesting a loading error. Report_Hour most likely reports the correct hour of the report. Thus, we will remove Report_Date
+```{r}
+feats <- c('Report_Date', 'Report_Year', 'Report_Year', 'Report_Month', 'Report_DayOfMonth', 'Report_Hour')
+df %>% select(feats) %>% head(5)
+```
+
+
+```{r}
+feats <- c('Report_Year', 'Report_Month', 'Report_DayOfWeek', 'Report_DayOfMonth', 'Report_DayOfYear', 'Report_Hour', 'City', 'Hood_ID', 'NeighbourhoodName', 'Longitude', 'Latitude')
+df <- df %>% select(feats)
+summary(df)
+```
+There seems to be some 0 values for Longitude and latitude. The summary shows that all hours, days of year, days of month and year are valid.
+
+Among these variables, there are no null values.
+```{r}
+colSums(is.na(df))
+```
+TODO turn categoricals into categoricals, look for more outliers.
