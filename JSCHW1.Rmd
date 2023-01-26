@@ -1,0 +1,25 @@
+---
+title: "HW1"
+output: 
+  html_document:
+    theme: flatly
+link-citations: yes
+---
+
+# Loading and reading in data
+
+Installing the necessary packages
+
+```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
+#install.packages(c("data.table","leaflet"))
+library(data.table)
+library(leaflet)
+library(tidyverse)
+```
+
+```{r checking-file, include=FALSE}
+fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
+if (!file.exists("met_all.gz"))
+  download.file(fn, destfile = "met_all.gz")
+met <- data.table::fread("met_all.gz")
+```
